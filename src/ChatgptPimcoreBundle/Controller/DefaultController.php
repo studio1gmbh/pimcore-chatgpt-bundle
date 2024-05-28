@@ -25,16 +25,16 @@ use Pimcore\Model\DataObject\ClassDefinition\Data;
 class DefaultController extends FrontendController
 {
 
-   
-   
- /** 
+
+
+ /**
      * @Route("/admin/chatgpt/object-fields")
     */
     public function getFields(Request $request)
     {
         $objectId = $request->get('objectId');
         $object = DataObject::getById((int)$objectId);
-        
+
         $fieldItems = [];
         if($object){
             // Get the class definition
@@ -47,10 +47,10 @@ class DefaultController extends FrontendController
                 if (
                     $field instanceof Data\Textarea
                     || $field instanceof Data\Wysiwyg
-               
+
                 ) {
                     $fieldItems[] =
-                    [ 
+                    [
                         'id' =>$field->getName(),
                         "name" => $field->getTitle(),
                         'is_localizedfield'=>false,
@@ -67,10 +67,10 @@ class DefaultController extends FrontendController
                         if (
                              $localizedfield instanceof Data\Wysiwyg
                             || $localizedfield instanceof Data\Textarea
-                       
+
                         ) {
                             $fieldItems[] =
-                            [ 
+                            [
                                 'id' =>$localizedfield->getName(),
                                 "name" => $localizedfield->getTitle(),
                                 'is_localizedfield'=>true,
@@ -88,9 +88,9 @@ class DefaultController extends FrontendController
     }
 
 
-    /** 
+    /**
      * @Route("/admin/map-description-field")
-     * 
+     *
     */
 
     public function mapDescriptionField(Request $request){
@@ -98,7 +98,7 @@ class DefaultController extends FrontendController
         $field = $request->get('field');
         $language = $request->get('language');
         $object = DataObject::getById((int)$objectId);
-    
+
 
         if($object){
             // Get the class definition
@@ -121,10 +121,10 @@ class DefaultController extends FrontendController
                     || $field instanceof Data\Numeric
                     || $field instanceof Data\DateTime
                     || $field instanceof Data\Multiselect
-                  
 
-                    
-               
+
+
+
                 ) {
                     $value = $object->{'get'.ucwords($field->getName())}();
                     if($value){
@@ -133,7 +133,7 @@ class DefaultController extends FrontendController
                         }
                         $description .= $field->getTitle().':'.$value."\n";
                     }
-                    
+
                 }
 
                 if (
@@ -150,15 +150,15 @@ class DefaultController extends FrontendController
                             || $localizedfield instanceof Data\Date
                             || $localizedfield instanceof Data\DateTime
                             || $localizedfield instanceof Data\Numeric
-                           
-                       
+
+
                         ) {
                             $value = $object->{'get'.ucwords($localizedfield->getName())}();
                             if($value){
                                 $description .= $localizedfield->getTitle().':'.$value."\n";
                             }
-                            
-                            
+
+
                         }
                     }
                 }
@@ -173,7 +173,7 @@ class DefaultController extends FrontendController
 
     }
 
-     /** 
+     /**
      * @Route("/admin/chatgpt/generate-description")
     */
     public function generateDescription(Request $request)
@@ -184,26 +184,35 @@ class DefaultController extends FrontendController
         $lang = $request->get('lang');
         $max_tokens = $request->get('max_tokens');
 
-      
-        $apiKey = $this->getChatGPTAuthKey();
 
-        if(empty( $apiKey)){
+        $apiKey = $this->getChatGPTAuthKey();
+        $gptModel = $this->getChatGPTModel();
+
+        if(empty($apiKey)){
             return new JsonResponse([
                 "success" =>  false,
-                "message" => "The instruction states to generate an API key from OpenAI and add the generated key, labeled as 'chatgpt_auth_key', in the website settings. This key is likely used for authentication purposes to interact with OpenAI's ChatGPT API. By following this instruction, you can obtain the necessary credentials to authenticate and access the API, enabling communication with the ChatGPT model on your website or application."
+                "message" => "Please provide an API key from OpenAI and add the generated key,
+                labeled as 'chatgpt_auth_key', in the website settings."
+            ]);
+        }
+        if(empty($gptModel)){
+            return new JsonResponse([
+                "success" =>  false,
+                "message" => "Please provide a valid OpenAI model (for example \"text-davinci-003\") and it to the
+                website settings labled as \"chatgpt_model\"."
             ]);
         }
         $client =  OpenAI::client($apiKey);
 
         $result = $client->completions()->create([
-            'model' => 'text-davinci-003',
+            'model' => $gptModel,
             'prompt' => $description,
             'max_tokens' => (int)$max_tokens,
             'temperature' => 0.0
         ]);
         $text = '';
         $response = $result->toArray();
-     
+
         if(isset($response['choices']) && !empty($response['choices'])){
             $text = $response['choices'][0]['text'];
         }
@@ -225,9 +234,9 @@ class DefaultController extends FrontendController
                 "message" => "The AI did not provide any data or information based on description."
             ]);
         }
-       
 
-        
+
+
     }
 
 
@@ -235,6 +244,10 @@ class DefaultController extends FrontendController
         $authKey = WebsiteSetting::getByName("chatgpt_auth_key") ? WebsiteSetting::getByName("chatgpt_auth_key")->getData() : null;
         return $authKey;
     }
-    
-}
 
+    public function getChatGPTModel(){
+        $authKey = WebsiteSetting::getByName("chatgpt_model") ? WebsiteSetting::getByName("chatgpt_model")->getData() : null;
+        return $authKey;
+    }
+
+}
