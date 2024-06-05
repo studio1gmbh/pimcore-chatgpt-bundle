@@ -24,9 +24,6 @@ use Pimcore\Model\DataObject\ClassDefinition\Data;
 
 class DefaultController extends FrontendController
 {
-
-
-
  /**
      * @Route("/admin/chatgpt/object-fields")
     */
@@ -207,22 +204,25 @@ class DefaultController extends FrontendController
         $result = $client->completions()->create([
             'model' => $gptModel,
             'prompt' => $description,
-            'max_tokens' => (int)$max_tokens,
+            'max_tokens' => (int) $max_tokens,
             'temperature' => 0.0
         ]);
         $text = '';
         $response = $result->toArray();
 
-        if(isset($response['choices']) && !empty($response['choices'])){
+        if (isset($response['choices']) && !empty($response['choices'])){
             $text = $response['choices'][0]['text'];
         }
+
         $object = DataObject::getById((int)$objectId);
-        if($text){
-            if($lang){
+        if ($text){
+            if($lang) {
                 $object->{'set'.ucwords($field)}($text,$lang);
-            }else{
+            } else{
                 $object->{'set'.ucwords($field)}($text);
             }
+
+            $object->markFieldDirty(ucwords($field), true);
             $object->save();
             return new JsonResponse([
                 "success" =>  true,
