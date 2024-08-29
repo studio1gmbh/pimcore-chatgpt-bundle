@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Studio1 Kommunikation GmbH
+ *
+ * This source file is available under following license:
+ * - GNU General Public License v3.0 (GNU GPLv3)
+ *
+ *  @copyright  Copyright (c) Studio1 Kommunikation GmbH (http://www.studio1.de)
+ *  @license    https://www.gnu.org/licenses/gpl-3.0.txt
+ */
+
 namespace Pdchaudhary\ChatgptPimcoreBundle;
 
 use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
@@ -7,7 +17,7 @@ use Pimcore\Extension\Bundle\PimcoreBundleAdminClassicInterface;
 use Pimcore\Extension\Bundle\Traits\BundleAdminClassicTrait;
 use Pimcore\Extension\Bundle\Traits\PackageVersionTrait;
 
-class ChatgptPimcoreBundle extends AbstractPimcoreBundle  implements PimcoreBundleAdminClassicInterface
+class ChatgptPimcoreBundle extends AbstractPimcoreBundle implements PimcoreBundleAdminClassicInterface
 {
     use BundleAdminClassicTrait;
     use PackageVersionTrait;
@@ -25,8 +35,8 @@ class ChatgptPimcoreBundle extends AbstractPimcoreBundle  implements PimcoreBund
         return 'Chatgpt Pimcore Bundle';
     }
 
-
-    public function getEditmodeJsPaths() : array{
+    public function getEditmodeJsPaths(): array
+    {
         return [
             '/bundles/chatgptpimcore/js/pimcore/startup.js',
             '/bundles/chatgptpimcore/js/pimcore/openPopupModal.js',
@@ -42,8 +52,6 @@ class ChatgptPimcoreBundle extends AbstractPimcoreBundle  implements PimcoreBund
 
     public function getVersion(): string
     {
-        return "2.0";
+        return '2.0';
     }
-
-    
 }
